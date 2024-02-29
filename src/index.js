@@ -1,28 +1,24 @@
 // index.js
 
-//clean up to dos:
-//create consts in global scope that you use again and again
-//create url const
-//write out each step and what it accomplishes
-//remove console.logs
+//global variables
+let url = 'http://localhost:3000'
+let ramenDetail = document.querySelector('#ramen-detail')
+let ramenMenu = document.getElementById('ramen-menu')
 
-//delete button 
+//create global delete button 
 let deleteBtn = document.createElement('button')
 let line = document.createElement('br')
-let ramenDetail = document.querySelector('#ramen-detail')
 
 deleteBtn.textContent = 'Delete Ramen :('
-deleteBtn.id = "delete-btn"
-
+deleteBtn.id = 'delete-btn'
 
 ramenDetail.appendChild(line)
 ramenDetail.appendChild(deleteBtn)
 
 // Callbacks
+
+//display ramen details in ramen-details by changing image src and text content of nodes
 const handleClick = (ramen) => {
-  // Add code
-  let ramenDetail = document.getElementById('ramen-detail')
-  
   ramenDetail.style.display = 'block'
   ramenDetail.querySelector('.detail-image').src = `${ramen.image}`
   ramenDetail.querySelector('.name').textContent = ramen.name 
@@ -34,16 +30,16 @@ const handleClick = (ramen) => {
 
 };
 
+//create new ramen through form submission with POST fetch request
 const addSubmitListener = () => {
-  // Add code
   let newRamen = document.querySelector('#new-ramen')
 
   newRamen.addEventListener('submit', (e) => {
     e.preventDefault()
-    fetch('http://localhost:3000/ramens', {
+    fetch(`${url}/ramens`, {
       method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         name: e.target.querySelector('#new-name').value,
@@ -69,18 +65,31 @@ const addSubmitListener = () => {
     let newComment = newRamenData.comment
     let newRamenId = newRamenData.id
 
-    let ramenMenu = document.getElementById('ramen-menu')
-
+    //create new ramen image in ramen-menu
     newRamenImg.src = newImage
     newRamenImg.id = newRamenData.id
 
-    console.log(newRamenImg.id)
     ramenMenu.appendChild(newRamenImg)
     
-    newRamenImg.addEventListener('click', () => {
-      let ramenDetail = document.getElementById('ramen-detail')
-      //make this global please
+    //display newly submitted ramen details on submit
+    ramenDetail.style.display = 'block'
+    ramenDetail.querySelector('.detail-image').src = newImage
+    ramenDetail.querySelector('.name').textContent = newRamenName
+    ramenDetail.querySelector('.name').id = newRamenId
+    ramenDetail.querySelector('.restaurant').textContent = newRestaurant
+  
+    document.getElementById('rating-display').textContent = newRating
+    document.getElementById('comment-display').textContent = newComment
 
+    //clears submission fields upon submit  
+    e.target.querySelector('#new-name').value = ''
+    e.target.querySelector('#new-restaurant').value = ''
+    e.target.querySelector('#new-image').value = ''
+    e.target.querySelector('#new-rating').value = ''
+    e.target.querySelector('#new-comment').value = ''
+
+    newRamenImg.addEventListener('click', () => {
+      //using handleClick here affects PATCH requests 
       ramenDetail.style.display = 'block'
       ramenDetail.querySelector('.detail-image').src = newImage
       ramenDetail.querySelector('.name').textContent = newRamenName
@@ -96,9 +105,9 @@ const addSubmitListener = () => {
   }
 )}
 
+// Get ramen details from server with fetch GET request
 const displayRamens = () => {
-  // Add code
-  fetch('http://localhost:3000/ramens')
+  fetch(`${url}/ramens`)
   .then(res => {
     if(res.ok){
       return res.json()
@@ -107,7 +116,6 @@ const displayRamens = () => {
   .then(data => {
     //display first ramen's details on load
     const firstRamen = data[0]
-    let ramenDetail = document.getElementById('ramen-detail')
     
     ramenDetail.querySelector('.detail-image').src = firstRamen.image
     ramenDetail.querySelector('.name').textContent = firstRamen.name 
@@ -117,10 +125,9 @@ const displayRamens = () => {
     document.getElementById('rating-display').textContent = firstRamen.rating
     document.getElementById('comment-display').textContent = firstRamen.comment
 
-    //create slider images for each ramen
+    //create slider images for each ramen in ramen-menu
     data.forEach((ramen) => {
     let ramenImg = document.createElement('img') 
-    let ramenMenu = document.getElementById('ramen-menu')
 
     ramenImg.src = ramen.image
     ramenImg.id = ramen.id
@@ -134,14 +141,14 @@ const displayRamens = () => {
   .catch(error => alert(error))
 };
 
-//update ratings and comments via the form edit-ramen
+//update ratings and comments via edit-ramen form with PATCH fetch request
 const changeRamen = () => {
   let editRamen = document.querySelector('#edit-ramen')
   editRamen.addEventListener('submit', (e) => {
     e.preventDefault()
-    let ramenID = document.querySelector(".name").id
-    console.log(ramenID)
-    fetch(`http://localhost:3000/ramens/${ramenID}`, {
+    let ramenID = document.querySelector('.name').id
+
+    fetch(`${url}/ramens/${ramenID}`, {
       method: 'PATCH',
       headers: {
         "Content-Type": "application/json",
@@ -165,48 +172,52 @@ const changeRamen = () => {
 
       document.querySelector('#rating-display').textContent = updatedRating
       document.querySelector('#comment-display').textContent = updatedComment
+
+      //clearing of submission fields on submit
+      e.target.querySelector('#new-rating').value = ''
+      e.target.querySelector('#new-comment').value = ''
+
     })
     .catch(error => alert(error))
 
   })
 }
 
+//Delete button functionality with DELETE fetch request
 const deleteRamen = () => {
   deleteBtn.addEventListener('click', () => {
-    let ramenDetail = document.querySelector('#ramen-detail')
-    let ramenID = document.querySelector(".name").id
-    let ramenMenu = document.querySelector("#ramen-menu")
+    let ramenID = document.querySelector('.name').id
+    let ramenMenu = document.querySelector('#ramen-menu')
 
-  
-    fetch(`http://localhost:3000/ramens/${ramenID}`, {
-      method: "DELETE",
+    fetch(`${url}/ramens/${ramenID}`, {
+      method: 'DELETE',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     })
     .then(res => {
       if(res.ok){
         return res.json()
       } else {
-        return alert("Something went wrong")
+        return alert('Something went wrong')
       }
     })
     .then(response => {
       console.log(response)
-      alert("Ramen successfully deleted!")
+      alert('Ramen successfully deleted!')
     })
     .catch(error => alert(error))
     
     //hide ramen-detail area
     ramenDetail.style.display = 'none'
 
-    document.querySelector("#rating-display").textContent = "Insert rating here"
-    document.querySelector("#comment-display").textContent = "Insert comment here"
+    document.querySelector('#rating-display').textContent = 'Insert rating here'
+    document.querySelector('#comment-display').textContent = 'Insert comment here'
 
-    //delete picture in ramen-menu div
     //.escape the ID because it starts with a number to make it a string and, therefore, a valid selector
     let escapedRamenID = CSS.escape(ramenID);
 
+    //delete picture in ramen-menu div
     ramenMenu.querySelector(`#${escapedRamenID}`).remove()
 
 
@@ -219,8 +230,6 @@ const main = () => {
   addSubmitListener()
   changeRamen()
   deleteRamen()
-  // Invoke displayRamens here
-  // Invoke addSubmitListener here
 }
 
 main()
